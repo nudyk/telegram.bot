@@ -1,0 +1,9 @@
+/.vs/
+*.csproj.user
+/DataBaseLayer/bin/
+/DataBaseLayer/obj/
+/TelegramBot/.vs/
+/TelegramBot/bin/
+/TelegramBot/obj/
+/packages/*
+/TelegramBot/appsettings - Copy.json
