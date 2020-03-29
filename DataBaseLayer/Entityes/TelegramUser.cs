@@ -7,7 +7,7 @@ namespace DataBaseLayer.Entityes
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public int Id { get; set; }
+        public new int Id { get; set; }
         // Summary:
         //     True, if this user is a bot
         [Required] public bool IsBot { get; set; }
@@ -31,5 +31,7 @@ namespace DataBaseLayer.Entityes
         // Summary:
         //     Optional. IETF language tag of the user's language
         [MaxLength(128)] public string LanguageCode { get; set; }
+        [Required]
+        public bool IsCanAddAnswers { get; set; }
     }
 }

@@ -8,7 +8,7 @@ namespace Telegram.Bot.Examples.DotNetCoreWebHook.Services
 {
     public interface IUpdateService
     {
-        Task EchoAsync(Update update, string message);
+        Task<Message> EchoAsync(Update update, string message);
 
         Task AnswerCallbackQueryAsync(string callbackQueryId, string text = null, bool showAlert = false,
             string url = null, int cacheTime = 0, CancellationToken cancellationToken = default);

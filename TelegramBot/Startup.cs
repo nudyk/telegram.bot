@@ -1,14 +1,10 @@
-using System.IO;
 using AutoMapper;
-using DataBaseLayer.Entityes;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Telegram.Bot.Examples.DotNetCoreWebHook.Services;
-using Microsoft.Extensions.DependencyInjection;
-using Telegram.Bot.Types;
 using TelegramBot.Utils;
 
 namespace Telegram.Bot.Examples.DotNetCoreWebHook
@@ -37,6 +33,8 @@ namespace Telegram.Bot.Examples.DotNetCoreWebHook
                 .AddControllers()
                 .AddNewtonsoftJson();
             services.AddLetsEncrypt();
+            services.AddRazorPages();
+            //services.AddSingleton<McMaster.AspNetCore.LetsEncrypt.ICertificateRepository>(new FileSystemCertificateRepository("C:/data/MyCertificates/", "Password123"));
 
             var mappingConfig = new MapperConfiguration(mc =>
             {
@@ -60,10 +58,12 @@ namespace Telegram.Bot.Examples.DotNetCoreWebHook
 
             app.UseRouting();
             app.UseCors();
+            app.UseStaticFiles();
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapRazorPages();
             });
         }
     }

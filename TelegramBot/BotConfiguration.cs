@@ -8,6 +8,6 @@ namespace Telegram.Bot.Examples.DotNetCoreWebHook
 
         public string Socks5Host { get; set; }
 
-        public int Socks5Port { get; set; }
+        public string Socks5Port { get; set; }
     }
 }

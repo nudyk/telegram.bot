@@ -15,8 +15,27 @@ namespace TelegramBot.Utils
     public static class CommandHandlers
     {
         public static bool AddAnswerstring(string msgText, ApplicationContext db, TelegramUser @from, TelegramBotClient client,
-            Update update1)
+            Update update)
         {
+            var isCanAdd = db.TelegramUsers.Any(p => p.Id == from.Id && p.IsCanAddAnswers);
+            if (!isCanAdd)
+            {
+                var answers = new[]
+                {
+                    "Нахер пошел",
+                    "Простите, нераслышал",
+                    "Повторите еще раз, я вас непонял",
+                    "Неразборчиво написали, напишите четче",
+                    "Нахуй, это к вам.",
+                    "Попробуйте еще раз",
+                    "Такой команды не существует. Попробуйте: /АНеПойтиЛиМнеНахуй?"
+                };
+                var r = new Random();
+                var answer = answers[r.Next(0, answers.Length)];
+                var message = update.Message;
+                client.SendTextMessageAsync(message.Chat.Id, answer, replyToMessageId: message.MessageId);
+                return true;
+            }
             var lines = msgText.Split('\n','\r', StringSplitOptions.RemoveEmptyEntries).Where(p => !string.IsNullOrEmpty(p));
             foreach (var line in lines)
             {

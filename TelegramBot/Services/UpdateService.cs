@@ -81,10 +81,10 @@ namespace Telegram.Bot.Examples.DotNetCoreWebHook.Services
             return result;
         }
 
-        public async Task EchoAsync(Update update, string textForSend)
+        public async Task<Message> EchoAsync(Update update, string textForSend)
         {
             if (update.Type != UpdateType.Message && update.Type != UpdateType.InlineQuery)
-                return;
+                return null;
 
             var message = update.Message;
 
@@ -103,7 +103,7 @@ namespace Telegram.Bot.Examples.DotNetCoreWebHook.Services
                     )
                 };
                 await _botService.Client.AnswerInlineQueryAsync(uery.Id, results);
-                return;
+                return null;
             }
             switch (message.Type)
             {
@@ -117,8 +117,9 @@ namespace Telegram.Bot.Examples.DotNetCoreWebHook.Services
                             InlineKeyboardButton.WithCallbackData(LikeConstansts.DizLike),
                         }
                     });
-                    await _botService.Client.SendTextMessageAsync(message.Chat.Id, textForSend, replyMarkup: keyboard, replyToMessageId:message.MessageId);
-                    break;
+                    Message responce = await _botService.Client.SendTextMessageAsync(message.Chat.Id, textForSend, replyMarkup: keyboard, replyToMessageId:message.MessageId);
+                    var messageId = responce.MessageId;
+                    return responce;
 
                 case MessageType.Photo:
                     // Download Photo
@@ -131,8 +132,10 @@ namespace Telegram.Bot.Examples.DotNetCoreWebHook.Services
                         await _botService.Client.DownloadFileAsync(file.FilePath, saveImageStream);
                     }
 
-                    await _botService.Client.SendTextMessageAsync(message.Chat.Id, "Thx for the Pics");
-                    break;
+                    responce = await _botService.Client.SendTextMessageAsync(message.Chat.Id, "Thx for the Pics");
+                    return responce;
+                default:
+                    return null;
             }
         }
     }
