@@ -49,6 +49,8 @@ namespace Telegram.Bot.Examples.DotNetCoreWebHook.Controllers
         {
             try
             {
+                var remoteIpAddress = Request?.HttpContext?.Connection?.RemoteIpAddress;
+                _logger.LogInformation("Remote Ip Address {0}, {1}", remoteIpAddress, remoteIpAddress?.MapToIPv4());
                 var inputData = System.Text.Json.JsonSerializer.Serialize(update);
                 var msg = update.Message;
                 if (msg == null)
@@ -67,7 +69,7 @@ namespace Telegram.Bot.Examples.DotNetCoreWebHook.Controllers
                 {
                     using (ApplicationContext db = new ApplicationContext())
                     {
-                        Chat chat = msg.Chat;
+                        Chat chat = msg?.Chat;
                         if (chat != null)
                         {
                             chatInfo = _mapper.Map<ChatInfo>(chat);
@@ -79,6 +81,7 @@ namespace Telegram.Bot.Examples.DotNetCoreWebHook.Controllers
                         {
 
                         }
+
                         if (from == null)
                         {
                             return Ok();
@@ -115,11 +118,13 @@ namespace Telegram.Bot.Examples.DotNetCoreWebHook.Controllers
                                 //}
                                 //return Ok();
                             }
-                            bool isToThisBot = questText.StartsWith(_config.BotName);
-                            if (from.IsBot && questText!= null)
+
+                            bool isToThisBot = questText != null && questText.StartsWith(_config.BotName);
+                            if (from.IsBot && questText != null)
                             {
                                 questText = Regex.Replace(questText, @"^@\S+\s", String.Empty);
                             }
+
                             if (update.Type == UpdateType.Message)
                             {
                                 //questText = update.InlineQuery.Query;
@@ -135,13 +140,14 @@ namespace Telegram.Bot.Examples.DotNetCoreWebHook.Controllers
                                     };
                                     db.Questions.Add(quest);
                                 }
-                                else if(quest != null)
+                                else if (quest != null)
                                 {
                                     quest.UpdatedDate = DateTime.UtcNow;
                                     quest.UpdatedId = from.Id;
                                     quest.Quantity++;
                                 }
-                                else if (!isToThisBot && !string.IsNullOrEmpty(questText) && !string.IsNullOrEmpty( msg?.ReplyToMessage?.Text))
+                                else if (!isToThisBot && !string.IsNullOrEmpty(questText) &&
+                                         !string.IsNullOrEmpty(msg?.ReplyToMessage?.Text))
                                 {
                                     //Add replies human to human as quest and answer
                                     string replyText = msg.ReplyToMessage.Text;
@@ -170,7 +176,9 @@ namespace Telegram.Bot.Examples.DotNetCoreWebHook.Controllers
                                     var answeText = questText.Substring(0, Math.Min(questText.Length, 512));
                                     answeText = Regex.Replace(answeText, "[\n\r]", " ").Trim();
                                     var q = db.Answers.Where(p => p.QuestionId == 88).ToList();
-                                    var answer = db.Answers.Where(p => p.Text == answeText  && p.QuestionId == replyQuest.Id).FirstOrDefault();
+                                    var answer = db.Answers
+                                        .Where(p => p.Text == answeText && p.QuestionId == replyQuest.Id)
+                                        .FirstOrDefault();
                                     if (answer == null)
                                     {
                                         answer = new Answer
@@ -185,56 +193,57 @@ namespace Telegram.Bot.Examples.DotNetCoreWebHook.Controllers
                                 }
                             }
 
-                            questText = Regex.Replace(questText, "[\n\r]", " ").Trim();
-                            string toSend = null;
-                            int answerId = 0;
-                            if (isToThisBot)
+                            if (!string.IsNullOrEmpty(questText))
                             {
-                                var answers = GetBotAnswers(db, questText, ".4");
-                                answerId = SelectMessage(answers, answerId, ref toSend);
-                            }
-                            else
-                            {
-                                var n = (new Random()).Next(10);
-                                var rating = n > 6 ? ".4" : ".7";
-                                var answers = GetBotAnswers(db, questText, rating);
-                                if (answers.Any())
+                                questText = Regex.Replace(questText, "[\n\r]", " ").Trim();
+                                string toSend = null;
+                                int answerId = 0;
+                                if (isToThisBot)
                                 {
+                                    var answers = GetBotAnswers(db, questText, ".4");
                                     answerId = SelectMessage(answers, answerId, ref toSend);
                                 }
                                 else
                                 {
-                                    _logger.LogInformation($"No any items with rating >{rating}");
+                                    var n = (new Random()).Next(10);
+                                    var rating = n > 6 ? ".4" : ".7";
+                                    var answers = GetBotAnswers(db, questText, rating);
+                                    if (answers.Any())
+                                    {
+                                        answerId = SelectMessage(answers, answerId, ref toSend);
+                                    }
+                                    else
+                                    {
+                                        _logger.LogInformation($"No any items with rating >{rating}");
+                                    }
                                 }
-                            }
-                            if (!string.IsNullOrWhiteSpace(toSend) && (chatInfo == null || !chatInfo.IsSelentMode))
-                            {
-                                var responce = await _updateService.EchoAsync(update, toSend);
-                                if (responce != null)
+
+                                if (!string.IsNullOrWhiteSpace(toSend) && (chatInfo == null || !chatInfo.IsSelentMode))
                                 {
-                                    var sended = new SendedAnswer
+                                    var responce = await _updateService.EchoAsync(update, toSend);
+                                    if (responce != null)
                                     {
-                                        AnswerId = answerId,
-                                        CreatedDate = DateTime.UtcNow,
-                                        MessageId = responce.MessageId,
-                                    };
-                                    db.SendedAnswers.Add(sended);
-                                    
-                                    var inputMessage = new InputMessage
-                                    {
-                                        MessageId = responce.MessageId,
-                                        Text = questText
-                                    };
-                                    db.InputMessages.Add(inputMessage);
+                                        var sended = new SendedAnswer
+                                        {
+                                            AnswerId = answerId,
+                                            CreatedDate = DateTime.UtcNow,
+                                            MessageId = responce.MessageId,
+                                        };
+                                        db.SendedAnswers.Add(sended);
 
-                                    db.SaveChanges();
+                                        var inputMessage = new InputMessage
+                                        {
+                                            MessageId = responce.MessageId,
+                                            Text = questText
+                                        };
+                                        db.InputMessages.Add(inputMessage);
+
+                                        db.SaveChanges();
+                                    }
                                 }
                             }
-
                         }
                     }
-
-                    
                 }
             }
             catch (Exception e)

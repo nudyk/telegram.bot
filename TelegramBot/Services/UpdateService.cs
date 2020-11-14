@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CoreHtmlToImage;
 using DataBaseLayer;
 using DataBaseLayer.Entityes;
 using Microsoft.Extensions.Logging;
@@ -137,6 +138,19 @@ namespace Telegram.Bot.Examples.DotNetCoreWebHook.Services
                 default:
                     return null;
             }
+        }
+
+        //private string ParseRazor<T>(string template, T model)
+        //{
+        //    var project = new InMemoryRazorLightProject();
+        //    var engine = new EngineFactory().Create(project);
+        //    return await engine.CompileRenderAsync<T>  (Guid.NewGuid().ToString(), template, model);
+        //}
+        private byte[] CoreHtmlToImage(string html)
+        {
+            var converter = new HtmlConverter();
+            byte[] bytes = converter.FromHtmlString(html);
+            return bytes;
         }
     }
 }

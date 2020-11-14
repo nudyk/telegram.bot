@@ -5,6 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ApplicationContext  - Copy.cs" />
+    <Compile Remove="ApplicationContext .cs" />
     <Compile Remove="Migrations\20200114071920_Initial.cs" />
     <Compile Remove="Migrations\20200114071920_Initial.Designer.cs" />
     <Compile Remove="Migrations\20200120123957_Add_SendedAnswer.cs" />
