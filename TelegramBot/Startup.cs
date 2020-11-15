@@ -32,7 +32,7 @@ namespace Telegram.Bot.Examples.DotNetCoreWebHook
             services
                 .AddControllers()
                 .AddNewtonsoftJson();
-            services.AddLetsEncrypt();
+            services.AddLettuceEncrypt();
             services.AddRazorPages();
             //services.AddSingleton<McMaster.AspNetCore.LetsEncrypt.ICertificateRepository>(new FileSystemCertificateRepository("C:/data/MyCertificates/", "Password123"));
 
